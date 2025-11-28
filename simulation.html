@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DPS Dwarka Expressway – Physics Simulations</title>
+<style>
+  body { font-family: Arial; margin: 20px; background:#f9f9f9; }
+  .simBox { display: none; margin-top:20px; }
+  header { text-align:center; }
+  nav { margin-top:10px; text-align:center; }
+  canvas { border-radius: 12px; background:#eef3ff; display:block; margin:auto; }
+  .meters { position: relative; width:800px; margin:auto; height:0; }
+  .meterCanvas { position:absolute; top:-10px; }
+  .label { text-align:center; font-weight:bold; margin-top:5px; }
+  #controls { text-align:center; margin-bottom:10px; }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="dps_logo.png" alt="DPS Logo" style="height:100px;">
+  <h2>DPS Dwarka Expressway – Physics Simulations</h2>
+</header>
+
+<nav>
+  <a href="index.html">Home</a> |
+  <a href="simulation.html">Simulations</a> |
+  <a href="about.html">About</a>
+</nav>
+
+<h3>Select Simulation:</h3>
+<select id="simSelector">
+  <option value="matterSim">Kinetic Theory of Matter</option>
+  <option value="electricSim">Electric Circuit Simulation</option>
+  <option value="oerstedSim">Ørsted’s Law Simulation</option>
+  <option value="heatingSim">Heating Effect of Current</option>
+</select>
+
+<hr><br>
+
+<!-- 1️⃣ Matter Simulation -->
+<div id="matterSim" class="simBox" style="display:block;">
+  <div class="label">Current State of Matter</div>
+  <div id="stateDisplay">Current State: Solid</div>
+  <div id="controls">
+    <label for="material">Select Material: </label>
+    <select id="material">
+      <option value="water">Water</option>
+      <option value="iron">Iron</option>
+      <option value="ethanol">Ethanol</option>
+      <option value="oxygen">Oxygen</option>
+      <option value="nitrogen">Nitrogen</option>
+    </select>
+    <label for="temperature">Adjust Temperature: </label>
+    <input type="range" id="temperature" value="25">
+    <span id="tempValue">25°C</span>
+  </div>
+  <div class="label">Particle Simulation Canvas</div>
+  <canvas id="simulationCanvas" width="800" height="500"></canvas>
+</div>
+
+<!-- 2️⃣ Electric Circuit Simulation -->
+<div id="electricSim" class="simBox">
+  <h3>Electric Circuit Simulation</h3>
+  <div class="label">Voltage Control</div>
+  <label for="voltSlider">Set Battery Voltage (V): </label>
+  <input type="range" id="voltSlider" min="0" max="12" value="0">
+  <span id="voltValue">0 V</span>
+  <div class="label">Circuit Switch</div>
+  <label>Toggle Switch: </label>
+  <button id="toggleSwitch">OFF</button>
+  <div class="meters">
+    <canvas id="ammeterCanvas" class="meterCanvas" width="150" height="150" style="left:50px;"></canvas>
+    <div class="label" style="position:absolute; left:50px; top:140px;">Ammeter (Current)</div>
+    <canvas id="voltmeterCanvas" class="meterCanvas" width="150" height="150" style="right:50px;"></canvas>
+    <div class="label" style="position:absolute; right:50px; top:140px;">Voltmeter (Voltage)</div>
+  </div>
+  <div class="label">Electric Circuit Canvas</div>
+  <canvas id="circuitCanvas" width="800" height="450"></canvas>
+</div>
+
+<!-- 3️⃣ Ørsted Simulation -->
+<div id="oerstedSim" class="simBox">
+  <h3>Ørsted’s Law Simulation</h3>
+  <div class="label">Current Slider</div>
+  <label for="oerstedCurrentSlider">Set Current (A): </label>
+  <input type="range" id="oerstedCurrentSlider" min="-10" max="10" value="0">
+  <span id="oerstedCurrentValue">0 A</span>
+  <div class="label">Direction: <span id="directionLabel">No Current</span></div>
+  <div class="meters">
+    <canvas id="ampOersted" class="meterCanvas" width="150" height="150" style="left:50px;"></canvas>
+    <div class="label" style="position:absolute; left:50px; top:140px;">Ammeter (Current)</div>
+    <canvas id="voltOersted" class="meterCanvas" width="150" height="150" style="right:50px;"></canvas>
+    <div class="label" style="position:absolute; right:50px; top:140px;">Voltmeter (Reference)</div>
+  </div>
+  <div class="label">Magnetic Field Canvas</div>
+  <canvas id="oerstedCanvas" width="800" height="450"></canvas>
+</div>
+
+<!-- 4️⃣ Heating Effect Simulation -->
+<div id="heatingSim" class="simBox">
+  <h3>Heating Effect of Electric Current (Nichrome Wire)</h3>
+  <div id="controls">
+    <label for="heatingCurrentSlider">Current (A): </label>
+    <input type="range" id="heatingCurrentSlider" min="0" max="5" step="0.1" value="1">
+    <span id="heatingCurrentValue">1 A</span><br>
+    <label for="wireGaugeSlider">Wire Gauge (mm): </label>
+    <input type="range" id="wireGaugeSlider" min="0.1" max="5" step="0.1" value="0.5">
+    <span id="wireGaugeValue">0.5 mm</span>
+  </div>
+  <div class="label">Nichrome Wire Canvas</div>
+  <canvas id="heatingCanvas" width="800" height="200"></canvas>
+  <div class="label" id="temperatureDisplay">Temperature: 25°C</div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Simulation selector
+  document.getElementById("simSelector").onchange = function() {
+    document.querySelectorAll(".simBox").forEach(b => b.style.display = "none");
+    document.getElementById(this.value).style.display = "block";
+  };
+
+  // Matter Simulation
+  (function() {
+    const canvas = document.getElementById('simulationCanvas');
+    const ctx = canvas.getContext('2d');
+    const materialSelect = document.getElementById('material');
+    const tempSlider = document.getElementById('temperature');
+    const tempValue = document.getElementById('tempValue');
+    const stateDisplay = document.getElementById('stateDisplay');
+
+    let particles = [];
+    let numParticles = 50;
+
+    const materials = {
+      water: { melt: 0, boil: 100, demoMin: -50, demoMax: 150 },
+      iron: { melt: 1538, boil: 2862, demoMin: 1400, demoMax: 3000 },
+      ethanol: { melt: -114, boil: 78, demoMin: -150, demoMax: 100 },
+      oxygen: { melt: -218, boil: -183, demoMin: -250, demoMax: -150 },
+      nitrogen: { melt: -210, boil: -196, demoMin: -250, demoMax: -150 }
+    };
+
+    function getState(material, temp) {
+      const { melt, boil } = materials[material];
+      if (temp <= melt) return 'Solid';
+      if (temp >= boil) return 'Gas';
+      return 'Liquid';
+    }
+
+    function createParticles(material, state, temp) {
+      particles = [];
+      let spacing;
+      if(state === 'Solid') spacing = 40;
+      else if(state === 'Liquid') spacing = 20;
+      else spacing = 15;
+
+      let rows = Math.floor(Math.sqrt(numParticles));
+      let cols = Math.ceil(numParticles / rows);
+
+      for (let i = 0; i < numParticles; i++) {
+        let row = Math.floor(i / cols);
+        let col = i % cols;
+        let latticeWidth = cols * spacing;
+        let latticeHeight = rows * spacing;
+        let startX = (canvas.width - latticeWidth)/2 + spacing/2;
+        let startY = (canvas.height - latticeHeight)/2 + spacing/2;
+        let originX = startX + col * spacing;
+        let originY = startY + row * spacing;
+        let x = originX;
+        let y = originY;
+        let vx = 0, vy = 0;
+        if(state === 'Solid') { let amplitude = Math.max(0.5, temp/50); vx = (Math.random()-0.5)*amplitude; vy=(Math.random()-0.5)*amplitude; }
+        else if(state === 'Liquid') { vx=(Math.random()-0.5)*1.5; vy=(Math.random()-0.5)*1.5; }
+        else { vx=(Math.random()-0.5)*3; vy=(Math.random()-0.5)*3; }
+        particles.push({x,y,vx,vy,originX,originY,state});
+      }
+    }
+
+    function updateParticles() {
+      particles.forEach(p=>{
+        if(p.state==='Solid'){p.x=p.originX+p.vx;p.y=p.originY+p.vy;p.vx+=(Math.random()-0.5)*0.1;p.vy+=(Math.random()-0.5)*0.1;}
+        else{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>canvas.width)p.vx*=-1;if(p.y<0||p.y>canvas.height)p.vy*=-1;}
+      });
+    }
+
+    function drawParticles() { ctx.clearRect(0,0,canvas.width,canvas.height); particles.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,5,0,Math.PI*2);ctx.fillStyle='#006400';ctx.fill();}); }
+
+    function animate() { updateParticles(); drawParticles(); requestAnimationFrame(animate); }
+
+    function updateStateAndParticles(temp) { let material = materialSelect.value; let state = getState(material,temp); stateDisplay.textContent = "Current State: "+state; createParticles(material,state,temp); }
+
+    function updateSliderRange() { let mat=materialSelect.value; tempSlider.min=materials[mat].demoMin; tempSlider.max=materials[mat].demoMax; tempSlider.value=(materials[mat].demoMin+materials[mat].demoMax)/2; tempValue.textContent=tempSlider.value+"°C"; }
+
+    materialSelect.addEventListener('change',()=>{updateSliderRange(); updateStateAndParticles(parseFloat(tempSlider.value));});
+    tempSlider.addEventListener('input',()=>{tempValue.textContent=tempSlider.value+"°C"; updateStateAndParticles(parseFloat(tempSlider.value));});
+
+    updateSliderRange(); updateStateAndParticles(parseFloat(tempSlider.value)); animate();
+  })();
+
+  // Electric Circuit Simulation
+  (function() {
+    const cc=document.getElementById("circuitCanvas");
+    const eg=cc.getContext("2d");
+    const ampC=document.getElementById("ammeterCanvas");
+    const voltC=document.getElementById("voltmeterCanvas");
+    const ampG=ampC.getContext("2d");
+    const voltG=voltC.getContext("2d");
+
+    let V=0,S=false,Curr=0;
+    document.getElementById("voltSlider").oninput=e=>{V=parseFloat(e.target.value); document.getElementById("voltValue").innerText=V+" V";}
+    document.getElementById("toggleSwitch").onclick=()=>{S=!S;document.getElementById("toggleSwitch").innerText=S?"ON":"OFF";}
+
+    const heatingConfig = {
+        maxCurrent: 1.5,
+        minColor: {r:0, g:0, b:255},
+        maxColor: {r:255, g:50, b:0}
+    };
+
+    function getHeatColor(current){
+        let intensity = Math.min(1, current / heatingConfig.maxCurrent);
+        let r = Math.floor(heatingConfig.minColor.r + intensity*(heatingConfig.maxColor.r - heatingConfig.minColor.r));
+        let g = Math.floor(heatingConfig.minColor.g + intensity*(heatingConfig.maxColor.g - heatingConfig.minColor.g));
+        let b = Math.floor(heatingConfig.minColor.b + intensity*(heatingConfig.maxColor.b - heatingConfig.minColor.b));
+        return `rgb(${r},${g},${b})`;
+    }
+
+    function drawWire(x1,y1,x2,y2){
+        let color = getHeatColor(Curr);
+        eg.beginPath(); eg.lineWidth=8; eg.strokeStyle=color;
+        eg.moveTo(x1,y1); eg.lineTo(x2,y2); eg.stroke();
+    }
+
+    function drawBulb(x,y){
+        let color = getHeatColor(Curr);
+        eg.save(); eg.translate(x,y);
+        eg.beginPath();
+        eg.shadowBlur=40*(Curr/heatingConfig.maxCurrent);
+        eg.shadowColor=color;
+        eg.fillStyle=color;
+        eg.arc(0,0,35,0,Math.PI*2); eg.fill();
+        eg.shadowBlur=0; eg.fillStyle="#999"; eg.fillRect(-10,25,20,15); eg.restore();
+    }
+
+    function drawMeter(ctx,value,max,label){
+      ctx.clearRect(0,0,150,150);
+      ctx.save(); ctx.translate(75,75);
+      ctx.beginPath(); ctx.arc(0,0,70,0,Math.PI*2); ctx.fillStyle="#eee"; ctx.fill();
+      ctx.lineWidth=2; ctx.strokeStyle="#333"; ctx.stroke();
+      ctx.font="14px Arial"; ctx.fillStyle="#000"; ctx.fillText(label,-20,80);
+      for(let i=0;i<=10;i++){ let angle=Math.PI*1.5*(i/10-0.5); let x1=60*Math.cos(angle),y1=60*Math.sin(angle),x2=70*Math.cos(angle),y2=70*Math.sin(angle); ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();}
+      let needleAngle=Math.PI*1.5*(value/max-0.5); ctx.strokeStyle="red"; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(60*Math.cos(needleAngle),60*Math.sin(needleAngle)); ctx.stroke();
+      ctx.restore();
+    }
+
+    function loop(){
+      eg.clearRect(0,0,cc.width,cc.height);
+      Curr=S?V/12:0;
+      drawWire(150,200,300,200);
+      drawWire(300,200,450,200);
+      drawWire(450,200,600,200);
+      drawWire(600,200,600,350);
+      drawWire(600,350,150,350);
+      drawWire(150,350,150,200);
+      drawBulb(600,200);
+      drawMeter(ampG,Curr,1.5,"A");
+      drawMeter(voltG,V,12,"V");
+      requestAnimationFrame(loop);
+    }
+    loop();
+  })();
+
+  // Ørsted Simulation
+  (function() {
+    const oc = document.getElementById("oerstedCanvas");
+    const ox = oc.getContext("2d");
+    const ampO = document.getElementById("ampOersted").getContext("2d");
+    const voltO = document.getElementById("voltOersted").getContext("2d");
+    const directionLabel = document.getElementById("directionLabel");
+    let curr = 0;
+
+    document.getElementById("oerstedCurrentSlider").oninput = function(e) {
+      curr = parseFloat(e.target.value);
+      document.getElementById("oerstedCurrentValue").innerText = curr + " A";
+      directionLabel.innerText = curr > 0 ? "Current: Up (Right-Hand Rule)" : curr < 0 ? "Current: Down (Right-Hand Rule)" : "No Current";
+      draw();
+    };
+
+    function drawWire() {
+      ox.save();
+      ox.translate(oc.width / 2, oc.height / 2);
+      let glow = curr > 0 ? "rgba(0,255,0,0.5)" : curr < 0 ? "rgba(255,0,0,0.5)" : "rgba(0,0,0,0.2)";
+      ox.shadowBlur = 20;
+      ox.shadowColor = glow;
+      ox.fillStyle = "#444";
+      ox.fillRect(-8, -200, 16, 400);
+      ox.shadowBlur = 0;
+      ox.restore();
+    }
+
+    function drawField() {
+      ox.save();
+      ox.translate(oc.width / 2, oc.height / 2);
+      let s = Math.abs(curr) * 3;
+      for (let r = 40; r < 220; r += 25) {
+        ox.beginPath();
+        ox.strokeStyle = `rgba(0,80,255,${0.35 - r / 600})`;
+        ox.lineWidth = 2 + s / 8;
+        ox.arc(0, 0, r, 0, Math.PI * 2);
+        ox.stroke();
+      }
+      ox.restore();
+    }
+
+    function drawCompass() {
+      let cx = oc.width / 2 + 200, cy = oc.height / 2;
+      ox.save();
+      ox.translate(cx, cy);
+      ox.beginPath();
+      ox.arc(0, 0, 45, 0, Math.PI * 2);
+      ox.fillStyle = "#ddd";
+      ox.fill();
+      let angle = curr > 0 ? Math.PI / 2 : curr < 0 ? -Math.PI / 2 : 0;
+      ox.rotate(angle);
+      ox.beginPath();
+      ox.moveTo(0, -30);
+      ox.lineTo(0, 30);
+      ox.strokeStyle = "red";
+      ox.lineWidth = 5;
+      ox.stroke();
+      ox.restore();
+    }
+
+    function drawMeter(ctx, value, max, label) {
+      ctx.clearRect(0, 0, 150, 150);
+      ctx.save();
+      ctx.translate(75, 75);
+      ctx.beginPath();
+      ctx.arc(0, 0, 70, 0, Math.PI * 2);
+      ctx.fillStyle = "#eee";
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#333";
+      ctx.stroke();
+      ctx.font = "14px Arial";
+      ctx.fillStyle = "#000";
+      ctx.fillText(label, -20, 80);
+      for (let i = 0; i <= 10; i++) {
+        let angle = Math.PI * 1.5 * (i / 10 - 0.5);
+        let x1 = 60 * Math.cos(angle), y1 = 60 * Math.sin(angle);
+        let x2 = 70 * Math.cos(angle), y2 = 70 * Math.sin(angle);
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
+      let needleAngle = Math.PI * 1.5 * (value / max - 0.5);
+      ctx.strokeStyle = "red";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(60 * Math.cos(needleAngle), 60 * Math.sin(needleAngle));
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function draw() {
+      ox.clearRect(0, 0, oc.width, oc.height);
+      drawWire();
+      drawField();
+      drawCompass();
+      drawMeter(ampO, Math.abs(curr), 10, "A");
+      drawMeter(voltO, Math.abs(curr), 10, "V");
+    }
+
+    draw();
+  })();
+
+  // Heating Effect Simulation
+  (function() {
+    const canvas = document.getElementById('heatingCanvas');
+    const ctx = canvas.getContext('2d');
+    const currentSlider = document.getElementById('heatingCurrentSlider');
+    const currentValue = document.getElementById('heatingCurrentValue');
+    const wireGaugeSlider = document.getElementById('wireGaugeSlider');
+    const wireGaugeValue = document.getElementById('wireGaugeValue');
+    const temperatureDisplay = document.getElementById('temperatureDisplay');
+
+    let current = parseFloat(currentSlider.value);
+    let wireGauge = parseFloat(wireGaugeSlider.value);
+    let temperature = 25;
+
+    currentSlider.addEventListener('input', function() {
+      current = parseFloat(this.value);
+      currentValue.textContent = current + ' A';
+      updateHeating();
+    });
+
+    wireGaugeSlider.addEventListener('input', function() {
+      wireGauge = parseFloat(this.value);
+      wireGaugeValue.textContent = wireGauge + ' mm';
+      updateHeating();
+    });
+
+    function updateHeating() {
+      const resistivity = 1.1e-6;
+      const wireLength = 0.5;
+      const area = Math.PI * Math.pow(wireGauge / 2000, 2);
+      const resistance = resistivity * wireLength / area;
+
+      const heat = Math.pow(current, 2) * resistance * 1;
+      temperature = 25 + heat * 20;
+
+      temperatureDisplay.textContent = 'Temperature: ' + temperature.toFixed(1) + '°C';
+      drawWire(temperature);
+    }
+
+    function drawWire(temp) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const intensity = Math.min(1, (temp - 25) / 100);
+      const r = Math.floor(255 * intensity);
+      const g = Math.floor(255 * (1 - intensity));
+      const b = 0;
+      const color = `rgb(${r},${g},${b})`;
+
+      ctx.beginPath();
+      ctx.lineWidth = wireGauge * 10;
+      ctx.strokeStyle = color;
+      ctx.moveTo(50, canvas.height / 2);
+      ctx.lineTo(canvas.width - 50, canvas.height / 2);
+      ctx.stroke();
+    }
+
+    updateHeating();
+  })();
+});
+</script>
+
+</body>
+</html>

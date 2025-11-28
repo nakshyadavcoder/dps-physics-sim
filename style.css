@@ -1,0 +1,71 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Roboto:wght@400;500&display=swap');
+
+/* General body */
+body {
+    font-family: 'Roboto', Arial, sans-serif;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+}
+
+/* Header */
+header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 25px;
+    background-color: #006400;
+    color: white;
+    padding: 25px;
+}
+
+header h2 {
+    font-family: 'Merriweather', serif;
+    font-weight: 700;
+    margin: 0;
+    font-size: 28px;
+}
+
+/* Navigation */
+nav {
+    text-align: center;
+    margin: 10px 0;
+}
+
+nav a {
+    text-decoration: none;
+    color: #006400;
+    margin: 0 10px;
+    font-weight: 500;
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Controls */
+#controls {
+    margin: 20px;
+    font-family: 'Roboto', sans-serif;
+}
+
+#controls label {
+    margin-right: 10px;
+}
+
+#temperature {
+    width: 250px;
+}
+
+#stateDisplay {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 10px;
+    color: #006400;
+}
+
+/* Canvas */
+canvas {
+    border: 2px solid #006400;
+    background-color: white;
+    display: block;
+    margin: 10px auto;
+}
