@@ -1,7 +1,7 @@
 {
   "name": "DPS - Science Simulations",
   "short_name": "DPS Science",
-  "start_url": "/index.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -9,12 +9,12 @@
   "orientation": "landscape",
   "icons": [
     {
-      "src": "/dps_logo-192.png",
+      "src": "./dps_logo-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/dps_logo-512.png",
+      "src": "./dps_logo-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
