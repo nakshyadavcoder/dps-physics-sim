@@ -1,12 +1,13 @@
 const CACHE_NAME = "dps-cache-v1";
 
 const FILES_TO_CACHE = [
-  "index.html",
-  "simulation.html",
-  "about.html",
-  "style.css",
-  "dps_logo.png",
-  "manifest.json"
+  "./index.html",
+  "./simulation.html",
+  "./about.html",
+  "./style.css",
+  "./manifest.json",
+  "./dps_logo-192.png",
+  "./dps_logo-512.png"
 ];
 
 self.addEventListener("install", event => {
